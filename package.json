@@ -1,0 +1,28 @@
+{
+  "name": "patch-suggest",
+  "version": "0.0.1",
+  "description": "The commons suggesters for text fields - for patch-* family apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mixmix/patch-suggest.git"
+  },
+  "keywords": [
+    "patchcore",
+    "depject",
+    "suggest"
+  ],
+  "author": "mixmix",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/mixmix/patch-suggest/issues"
+  },
+  "homepage": "https://github.com/mixmix/patch-suggest",
+  "dependencies": {
+    "depnest": "^1.3.0",
+    "mutant": "^3.21.2"
+  }
+}
