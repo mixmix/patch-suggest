@@ -16,17 +16,17 @@ exports.create = function (api) {
   var subscribed = null
 
   return nest('channel.async.suggest', suggestedChannels)
-  
+
   function suggestedChannels () {
     loadSuggestions()
     return function (word) {
       if (!word) {
         return suggestions().slice(0, 100)
-      } else {
-        word = word.toLowerCase()
-        return suggestions()
-          .filter(item => ~item.title.toLowerCase().indexOf(word))
       }
+
+      word = word.toLowerCase()
+      return suggestions()
+        .filter(item => ~item.title.toLowerCase().indexOf(word))
     }
   }
 
