@@ -21,12 +21,18 @@ exports.create = function (api) {
     loadSuggestions()
     return function (word) {
       if (!word) {
-        return suggestions().slice(0, 100)
+        return suggestions()
+          .sort(() => Math.random() > 0.5 ? +1 : -1) //shuffle
+          .slice(0, 100)
       }
 
       word = word.toLowerCase()
       return suggestions()
         .filter(item => ~item.title.toLowerCase().indexOf(word))
+        .sort((a, b) => { 
+          // if word fragment occurs earlier in name, bump up
+          return a.title.indexOf(word) < b.title.indexOf(word) ? -1 : +1
+        })
     }
   }
 

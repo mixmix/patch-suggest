@@ -13,11 +13,11 @@ exports.create = function (api) {
   var subscribed = null
 
   return nest('emoji.async.suggest', suggestedEmoji)
-  
-  function suggestedEmoji (word) {
+
+  function suggestedEmoji () {
     return function (word) {
       // when no emoji typed, list some default ones
-      if (word.length === 0) {
+      if (!word) {
         return api.emoji.sync.names()
           .sort(() => Math.random() > 0.5 ? +1 : -1) //shuffle
           .slice(0, 10)
