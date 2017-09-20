@@ -67,7 +67,7 @@ exports.create = function (api) {
 
     recentSuggestions = map(
       computed(recentlyUpdated, (items) => Array.from(items).slice(0, 10)),
-      suggestion,
+      toRecentSuggestion,
       {idle: true}
     )
 
@@ -87,7 +87,7 @@ exports.create = function (api) {
     const id = resolve(item.key)
 
     return computed([api.about.obs.name(id)], myNameForThem => {
-      return map(item.value, name => {
+      return map(item.value, name => { 
         const names = item.value()
 
         const aliases = names
@@ -111,11 +111,10 @@ exports.create = function (api) {
         })
       })
     })
-
   }
 
   // feeds recentSuggestions
-  function suggestion (id) {
+  function toRecentSuggestion (id) {
     var name = api.about.obs.name(id)
     return Struct({
       id,

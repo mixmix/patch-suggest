@@ -5,14 +5,18 @@ exports.gives = nest('styles.mcss')
 const suggestBox = `
 body {
   div.suggest-box {
-    width: max-content
+    overflow-y: auto
     background-color: #fff
 
+    width: max-content
     min-width: 20rem
     max-width: 35rem
+
+    max-height: 70vh
+
     padding: .2rem .5rem
-    margin-top: .35rem
     border: 1px gainsboro solid
+    margin-top: .35rem
 
     ul {
       list-style-type: none
@@ -53,6 +57,7 @@ body {
           display: flex
           justify-content: flex-end
 
+          // profile only
           div.aliases {
             flex-grow: 1
 
@@ -71,6 +76,7 @@ body {
             }
           }
 
+          // profile only
           div.key {
             align-self: flex-end
 
@@ -80,6 +86,12 @@ body {
             font-size: .8rem
             min-width: 5rem
           }
+
+          // emoji only
+          div.emoji {
+            flex-grow: 1
+          }
+
         }
       }
 
