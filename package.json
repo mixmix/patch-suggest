@@ -23,6 +23,7 @@
   "homepage": "https://github.com/mixmix/patch-suggest",
   "dependencies": {
     "depnest": "^1.3.0",
-    "mutant": "^3.21.2"
+    "mutant": "^3.21.2",
+    "ssb-ref": "^2.9.1"
   }
 }

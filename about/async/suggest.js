@@ -1,4 +1,5 @@
 const nest = require('depnest')
+const { isFeed } = require('ssb-ref')
 const { h, Struct, map, concat, dictToCollection, computed, lookup, watch, keys, resolve } = require('mutant')
 
 const KEY_SAMPLE_LENGTH = 10 // includes @
@@ -10,6 +11,7 @@ exports.needs = nest({
   'about.obs.name': 'first',
   'about.obs.imageUrl': 'first',
   'contact.obs.following': 'first',
+  'contact.obs.followers': 'first',
   'feed.obs.recent': 'first',
   'keys.sync.id': 'first'
 })
@@ -22,20 +24,32 @@ exports.create = function (api) {
 
   function suggestedProfile () {
     loadSuggestions()
+
     return function (word) {
       if (!word) return recentSuggestions()
 
-      wordLower = word.toLowerCase()
+      var wordNormed = normalise(word)
       return suggestions()
-        .filter(item => ~item.title.toLowerCase().indexOf(wordLower))
+        .filter(item => ~normalise(item.title).indexOf(wordNormed))
         .sort((a, b) => { 
+          // where name is is an exact match
+          if (a.title === word) return -1
+          if (b.title === word) return +1
+
+          const normedATitle = normalise(a.title)
+          const normedBTitle = normalise(b.title)
+
+          // where normalised name is an exact match
+          if (normedATitle === wordNormed) return -1
+          if (normedBTitle === wordNormed) return +1
+
           // where name is matching exactly so far
           if (a.title.indexOf(word) === 0) return -1
           if (b.title.indexOf(word) === 0) return +1
 
           // where name is matching exactly so far (case insensitive)
-          if (a.title.toLowerCase().indexOf(wordLower) === 0) return -1
-          if (b.title.toLowerCase().indexOf(wordLower) === 0) return +1
+          if (normedATitle.indexOf(wordNormed) === 0) return -1
+          if (normedBTitle.indexOf(wordNormed) === 0) return +1
         })
         .reduce((sofar, match) => {
           // prune down to the first instance of each id
@@ -55,19 +69,21 @@ exports.create = function (api) {
   function loadSuggestions () {
     if (suggestions) return
 
-    var id = api.keys.sync.id()
-    var following = api.contact.obs.following(id)
+    var myId = api.keys.sync.id()
+    var following = api.contact.obs.following(myId)
+    var followers = api.contact.obs.followers(myId)
     var recentlyUpdated = api.feed.obs.recent()
-    var contacts = computed([following, recentlyUpdated], (a, b) => {
+    var contacts = computed([following, followers, recentlyUpdated], (a, b, c) => {
       var result = new Set(a)
       b.forEach(item => result.add(item))
+      c.forEach(item => result.add(item))
 
       return Array.from(result)
     })
 
     recentSuggestions = map(
       computed(recentlyUpdated, (items) => Array.from(items).slice(0, 10)),
-      toRecentSuggestion,
+      buildSuggestion,
       {idle: true}
     )
 
@@ -107,14 +123,14 @@ exports.create = function (api) {
           value: mention(name, id),
           image: api.about.obs.imageUrl(id),
           showBoth: true,
-          _isPrefered: name === myNameForThem
+          _isPrefered: normalise(name) === normalise(myNameForThem)
         })
       })
     })
   }
 
-  // feeds recentSuggestions
-  function toRecentSuggestion (id) {
+  // used to cobble together additional suggestions
+  function buildSuggestion (id) {
     var name = api.about.obs.name(id)
     return Struct({
       id,
@@ -125,6 +141,10 @@ exports.create = function (api) {
       showBoth: true
     })
   }
+}
+
+function normalise (word) {
+  return word.toLowerCase().replace(/(\s|-)/g, '')
 }
 
 function mention (name, id) {
