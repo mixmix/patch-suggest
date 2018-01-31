@@ -30,7 +30,7 @@ exports.create = (api) => {
 
     var textArea = h('textarea')
 
-    var getProfileSuggestions = api.about.async.suggest()
+    var getUserSuggestions = api.about.async.suggest()
     var getChannelSuggestions = api.channel.async.suggest()
     var getEmojiSuggestions = api.emoji.async.suggest()
 
@@ -40,7 +40,7 @@ exports.create = (api) => {
         const char = inputText[0]
         const wordFragment = inputText.slice(1)
 
-        if (char === '@') cb(null, getProfileSuggestions(wordFragment))
+        if (char === '@') cb(null, getUserSuggestions(wordFragment))
         if (char === '#') cb(null, getChannelSuggestions(wordFragment))
         if (char === ':') cb(null, getEmojiSuggestions(wordFragment))
       },
@@ -51,6 +51,25 @@ exports.create = (api) => {
   }
 }
 ```
+
+## API
+
+Each of these depject methods is called to initialize it (starts pre-loading data in the pbackground) and returns a "suggester".
+The suggester functions return "suggestion" objects which are compatible with the `suggest-box` module, but you can use them for whatever!
+
+### `api.about.async.suggest() => suggester(word, extraIds)`
+
+`suggester` returns suggestions for users based on your followers, following, and people who've recently said things.
+
+`extraIds` (optional) you can add an _Array_ (or _MutantArray_) of FeedIds which you would like included in the suggestions. This is a great way to add the context (i.e. the people in the conversation) of a the current page you're in to the suggestions.
+
+### `api.channel.async.suggest() => suggester(word)`
+
+`suggester` returns suggestions for channels
+
+### `api.emoji.async.suggest() => suggester(word)`
+
+`suggester` returns suggestions for emojis
 
 ## Styling
 
