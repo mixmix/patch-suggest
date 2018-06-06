@@ -20,7 +20,8 @@ exports.gives = nest('app.page.somePage')
 exports.needs = nest({
   'about.async.suggest': 'first',
   'channel.async.suggest': 'first',
-  'emoji.async.suggest': 'first',  // NOTE emoji suggestion is synchronous
+  'emoji.async.suggest': 'first',
+  'meme.async.suggest': 'first',   // requires sbot has ssb-meme plugin
 })
 
 exports.create = (api) => {
@@ -29,10 +30,7 @@ exports.create = (api) => {
   function page (location) {
 
     var textArea = h('textarea')
-
-    var getUserSuggestions = api.about.async.suggest()
-    var getChannelSuggestions = api.channel.async.suggest()
-    var getEmojiSuggestions = api.emoji.async.suggest()
+    var feedIdsInThread = [ ... ] // some collection of feeds you'd like to ensure make the suggestions
 
     suggestBox(
       textArea,
@@ -40,9 +38,10 @@ exports.create = (api) => {
         const char = inputText[0]
         const wordFragment = inputText.slice(1)
 
-        if (char === '@') cb(null, getUserSuggestions(wordFragment))
-        if (char === '#') cb(null, getChannelSuggestions(wordFragment))
-        if (char === ':') cb(null, getEmojiSuggestions(wordFragment))
+        if (char === '@') api.about.async.suggest(wordFragment, feedIdsInThread, cb)
+        if (char === '#') api.channel.async.suggest(wordFragment, cb)
+        if (char === ':') api.emoji.async.suggest(wordFragment, cb)
+        if (char === '&') api.meme.async.suggest(wordFragment, cb)
       },
       {cls: 'PatchSuggest'}
     )
@@ -57,19 +56,26 @@ exports.create = (api) => {
 Each of these depject methods is called to initialize it (starts pre-loading data in the pbackground) and returns a "suggester".
 The suggester functions return "suggestion" objects which are compatible with the `suggest-box` module, but you can use them for whatever!
 
-### `api.about.async.suggest() => suggester(word, extraIds)`
+### `api.about.async.suggest(word, extraIds, cb)
 
-`suggester` returns suggestions for users based on your followers, following, and people who've recently said things.
+`word` - name, or the start of a name you're searching for 
 
 `extraIds` (optional) you can add an _Array_ (or _MutantArray_) of FeedIds which you would like included in the suggestions. This is a great way to add the context (i.e. the people in the conversation) of a the current page you're in to the suggestions.
 
-### `api.channel.async.suggest() => suggester(word)`
+### `api.channel.async.suggest(word, cb)
 
-`suggester` returns suggestions for channels
+`word` - channel, or the start of a channel you're searching for 
 
-### `api.emoji.async.suggest() => suggester(word)`
+### `api.emoji.async.suggest(word, cb)
 
-`suggester` returns suggestions for emojis
+`word` - emoji, or the start of a emoji you're searching for 
+
+### `api.meme.async.suggest(word, cb)
+
+`word` - image name, or some part of an image name you're searching for
+  - image name is split into searchable parts of characters `_-~. `
+
+Requires the plugin ssb-meme to be installed
 
 ## Styling
 

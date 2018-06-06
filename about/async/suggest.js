@@ -21,65 +21,66 @@ exports.create = function (api) {
 
   return nest('about.async.suggest', suggestedProfile)
 
-  function suggestedProfile () {
+  function suggestedProfile (word, extraIds = [], cb) {
+    if (typeof extraIds === 'function') return suggestedProfile(word, [], extraIds)
     loadSuggestions()
+    if (word == null) return
 
-    return function (word, extraIds = []) {
-      var moreSuggestions = buildSuggestions(extraIds)
+    const moreSuggestions = buildSuggestions(extraIds)
 
-      if (!word && extraIds.length) return resolve(moreSuggestions)
-      if (!word) return resolve(recentSuggestions)
+    if (!word && extraIds.length) return cb(null, resolve(moreSuggestions))
+    if (!word) return cb(null, resolve(recentSuggestions))
 
-      var wordNormed = normalise(word)
+    const wordNormed = normalise(word)
 
-      return suggestions()
-        .concat(resolve(moreSuggestions))
-        .filter(item => ~normalise(item.title).indexOf(wordNormed))
-        .sort((a, b) => { 
-          // where name is is an exact match
-          if (a.title === word) return -1
-          if (b.title === word) return +1
+    const results = suggestions()
+      .concat(resolve(moreSuggestions))
+      .filter(item => ~normalise(item.title).indexOf(wordNormed))
+      .sort((a, b) => {
+        // where name is is an exact match
+        if (a.title === word) return -1
+        if (b.title === word) return +1
 
-          // TODO - move all this into the suggestion building and decorate the suggestion?
-          const normedATitle = normalise(a.title)
-          const normedBTitle = normalise(b.title)
+        // TODO - move all this into the suggestion building and decorate the suggestion?
+        const normedATitle = normalise(a.title)
+        const normedBTitle = normalise(b.title)
 
-          // where normalised name is an exact match
-          if (normedATitle === wordNormed) return -1
-          if (normedBTitle === wordNormed) return +1
+        // where normalised name is an exact match
+        if (normedATitle === wordNormed) return -1
+        if (normedBTitle === wordNormed) return +1
 
-          // where name is matching exactly so far
-          if (a.title.indexOf(word) === 0) return -1
-          if (b.title.indexOf(word) === 0) return +1
+        // where name is matching exactly so far
+        if (a.title.indexOf(word) === 0) return -1
+        if (b.title.indexOf(word) === 0) return +1
 
-          // where name is matching exactly so far (case insensitive)
-          if (normedATitle.indexOf(wordNormed) === 0) return -1
-          if (normedBTitle.indexOf(wordNormed) === 0) return +1
-        })
-        .reduce((sofar, match) => {
-          // prune down to the first instance of each id
-          // this presumes if you were typing e.g. "dino" you don't need "ahdinosaur" as well
-          if (sofar.find(el => el.id === match.id)) return sofar
+        // where name is matching exactly so far (case insensitive)
+        if (normedATitle.indexOf(wordNormed) === 0) return -1
+        if (normedBTitle.indexOf(wordNormed) === 0) return +1
+      })
+      .reduce((sofar, match) => {
+        // prune down to the first instance of each id
+        // this presumes if you were typing e.g. "dino" you don't need "ahdinosaur" as well
+        if (sofar.find(el => el.id === match.id)) return sofar
 
-          return [...sofar, match]
-        }, [])
-        .sort((a, b) => { 
-          // bubble up names where typed word matches our name for them
-          if (a._isPrefered) return -1
-          if (b._isPrefered) return +1
-        })
-    }
+        return [...sofar, match]
+      }, [])
+      .sort((a, b) => {
+        // bubble up names where typed word matches our name for them
+        if (a._isPrefered) return -1
+        if (b._isPrefered) return +1
+      })
+
+    cb(null, results)
   }
 
-
-  //// PRIVATE ////
+  /// / PRIVATE ////
 
   function loadSuggestions () {
     if (suggestions) return
 
-    var myId = api.keys.sync.id()
-    var following = api.contact.obs.following(myId)
-    var recentlyUpdated = api.feed.obs.recent()
+    const myId = api.keys.sync.id()
+    const following = api.contact.obs.following(myId)
+    const recentlyUpdated = api.feed.obs.recent()
 
     recentSuggestions = map(
       computed(recentlyUpdated, (items) => Array.from(items).slice(0, 10)),
@@ -88,8 +89,8 @@ exports.create = function (api) {
     )
     watch(recentSuggestions)
 
-    var contacts = computed([following, recentlyUpdated], (a, b) => {
-      var result = new Set(a)
+    const contacts = computed([following, recentlyUpdated], (a, b) => {
+      const result = new Set(a)
       b.forEach(item => result.add(item))
 
       return Array.from(result)
@@ -100,7 +101,7 @@ exports.create = function (api) {
     suggestions = concat(
       map(
         dictToCollection(suggestionsRecord),
-        pluralSuggestions, 
+        pluralSuggestions,
         {idle: true}
       )
     )
@@ -111,12 +112,12 @@ exports.create = function (api) {
     const id = resolve(item.key)
 
     return computed([api.about.obs.name(id)], myNameForThem => {
-      return map(item.value, name => { 
+      return map(item.value, name => {
         const names = item.value()
 
         const aliases = names
           .filter(n => n != name)
-          .map(name => h('div.alias', 
+          .map(name => h('div.alias',
             { className: name === myNameForThem ? '-bold' : '' },
             name
           ))
@@ -153,7 +154,7 @@ exports.create = function (api) {
 
   // used to cobble together additional suggestions
   function buildSuggestion (id) {
-    var name = api.about.obs.name(id)
+    const name = api.about.obs.name(id)
     return Struct({
     // return {
       id,
@@ -173,4 +174,3 @@ function normalise (word) {
 function mention (name, id) {
   return `[@${name}](${id})`
 }
-

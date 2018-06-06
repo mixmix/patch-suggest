@@ -41,6 +41,17 @@ PatchSuggest {
         margin-left: .5rem
         margin-right: .5rem
 
+        // *** this is a hack for ssb-memes!
+        display: flex
+        align-items: center
+
+        img.meme {
+          max-height: 100px
+          width: 100px
+          padding: .2rem
+        }
+        // ***
+
         span.subtle {
           color: #aaa
         }
