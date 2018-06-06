@@ -22,7 +22,7 @@ exports.create = function (api) {
   return nest('about.async.suggest', suggestedProfile)
 
   function suggestedProfile (word, extraIds = [], cb) {
-    if (typeof extraIds === 'function') return suggestedProfile(word, [], extraIds)
+    if (cb === undefined) return suggestedProfile(word, [], extraIds)
     loadSuggestions()
     if (word == null) return
 
