@@ -27,12 +27,30 @@ exports.create = function (api) {
         .slice(0, 100)
     }
 
-    word = word.toLowerCase()
+    const wordNormed = normalise(word)
+
     const results = suggestions()
-      .filter(item => ~item.title.toLowerCase().indexOf(word))
+      .filter(item => ~normalise(item.title).indexOf(word))
       .sort((a, b) => {
-        // if word fragment occurs earlier in name, bump up
-        return a.title.indexOf(word) < b.title.indexOf(word) ? -1 : +1
+        // where name is is an exact match
+        if (a.title === word) return -1
+        if (b.title === word) return +1
+
+        // TODO - move all this into the suggestion building and decorate the suggestion?
+        const normedATitle = normalise(a.title)
+        const normedBTitle = normalise(b.title)
+
+        // where normalised name is an exact match
+        if (normedATitle === wordNormed) return -1
+        if (normedBTitle === wordNormed) return +1
+
+        // where name is matching exactly so far
+        if (a.title.indexOf(word) === 0) return -1
+        if (b.title.indexOf(word) === 0) return +1
+
+        // where name is matching exactly so far (case insensitive)
+        if (normedATitle.indexOf(wordNormed) === 0) return -1
+        if (normedBTitle.indexOf(wordNormed) === 0) return +1
       })
     cb(null, results)
   }
@@ -43,7 +61,7 @@ exports.create = function (api) {
     var id = api.keys.sync.id()
     subscribed = api.channel.obs.subscribed(id)
     var recentlyUpdated = api.channel.obs.recent()
-    var contacts = computed([subscribed, recentlyUpdated], function (a, b) {
+    var channels = computed([subscribed, recentlyUpdated], function (a, b) {
       var result = Array.from(a)
       b.forEach((item, i) => {
         if (!result.includes(item)) {
@@ -53,7 +71,7 @@ exports.create = function (api) {
       return result
     })
 
-    suggestions = map(contacts, suggestion, {idle: true})
+    suggestions = map(channels, suggestion, {idle: true})
     watch(suggestions)
   }
 
@@ -71,4 +89,8 @@ function subscribedCaption (id, subscribed) {
   if (subscribed.has(id)) {
     return 'subscribed'
   }
+}
+
+function normalise (word) {
+  return word.toLowerCase() //.replace(/(\s|-)/g, '')
 }
