@@ -4,6 +4,7 @@ exports.gives = nest('styles.mcss')
 
 const suggestBox = `
 PatchSuggest {
+  z-index: 999
   overflow-y: auto
   background-color: #fff
 
