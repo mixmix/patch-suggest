@@ -1,6 +1,8 @@
 # Patch-suggest
 
-A module for easy suggest-mentions of people / channels / emoji in patch-* family apps.
+A module for easy suggest-mentions of people / channels / emoji in patch-\* family apps.
+
+**NOTE** : requires `ssb-suggest` plugin installed in your `ssb-server`
 
 Provides suggestions and styles in a format consumed by [`suggest-box`](https://github.com/pfrazee/suggest-box)
 
