@@ -1,6 +1,6 @@
 {
   "name": "patch-suggest",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "The commons suggesters for text fields - for patch-* family apps",
   "main": "index.js",
   "scripts": {
