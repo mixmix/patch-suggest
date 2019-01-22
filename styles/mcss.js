@@ -87,6 +87,10 @@ PatchSuggest {
           }
         }
 
+        i.fa {
+          margin: 0 .5rem
+        }
+
         // profile only
         div.key {
           align-self: flex-end
